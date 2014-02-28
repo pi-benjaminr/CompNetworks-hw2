@@ -24,20 +24,13 @@ public class MTServer {
 			try {
 			Socket cs = ss.accept();
 			System.out.println("SERVER: client connected.");
-			WorkerThread thread = new WorkerThread(cs, ss, bank);
+			WorkerThread thread = new WorkerThread(cs, ss, bank, threads);
 			threads.add(thread);
 			thread.start();
 			} catch(SocketException e) {}
 			
 		}
 		System.out.println("SERVER: ss closed");
-		
-		for (WorkerThread t : threads) {
-			try {
-				t.join();
-			} catch (InterruptedException e) {}
-		}
-		bank.save("accounts.txt");
 		
 		
 		

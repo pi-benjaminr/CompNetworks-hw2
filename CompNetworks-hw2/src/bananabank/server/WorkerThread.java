@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.StringTokenizer;
 
@@ -15,11 +16,13 @@ public class WorkerThread extends Thread {
 	Socket clientSocket;
 	ServerSocket ss;
 	BananaBank bank;
+	ArrayList<WorkerThread> threads;
 	
-	public WorkerThread(Socket cs, ServerSocket ss, BananaBank bank) {
+	public WorkerThread(Socket cs, ServerSocket ss, BananaBank bank, ArrayList<WorkerThread> threads) {
 		this.clientSocket = cs;
 		this.ss = ss;
 		this.bank = bank;
+		this.threads = threads;
 	}
 
 	@Override
@@ -35,6 +38,16 @@ public class WorkerThread extends Thread {
 				if (wordOne.equals("SHUTDOWN") && clientSocket.getInetAddress().toString().equals("/127.0.0.1")) {
 					System.out.println("SERVER: Shutting down...");
 					
+					//wait for other threads to close
+					for (WorkerThread t : threads) {
+						try {
+							if (t != Thread.currentThread())
+								t.join();
+						} catch (InterruptedException e) {}
+					}
+					
+					//save bank and return total to the client
+					bank.save("accounts.txt");
 					Collection<Account> accts = bank.getAllAccounts();
 					int total = 0;
 					for (Account acct : accts) {
